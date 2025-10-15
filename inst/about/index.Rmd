@@ -1,0 +1,10 @@
+---
+title: "DRIVEANALYTICS Methods Manual"
+always_allow_html: yes
+---
+
+# Introduction
+This manual describes all of the primary analytics methods part of the driveanalytics package.
+These methods were originally designed to work with the PICTURE cohort analytics platform but they can be used in either standalone R projects or shiny dashboards.
+
+Each of these methods is designed to work with the GOSH/DRIVE standardised data model, RDVs; however, they could work with other data models, such as OMOP.

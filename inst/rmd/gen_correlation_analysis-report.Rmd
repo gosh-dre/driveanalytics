@@ -1,0 +1,59 @@
+---
+params:
+  input_name:
+    label: "Input data name"
+    value: "UNKNOWN"
+  df_rdv:
+    label: "RDV"
+    value: "?"
+  df_pde:
+    label: "Demographics RDV"
+    value: "?"
+  event_col:
+    label: "Event column"
+    value: "?"
+  stratify_by:
+    label: "Stratify column"
+    value: NULL
+  relative_to:
+    label: "Relative to"
+    value: NULL
+  order_by:
+    label: "Order by stratify value"
+    value: NULL
+  nplot:
+    label: "Number to plot"
+    value: 15
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r run-analysis, echo=FALSE}
+gfa_result <- driveanalytics::gen_frequency_analysis(params$df_rdv, params$df_pde, params$event_col, params$stratify_by)
+gca_result <- driveanalytics::gen_correlation_analysis(gfa_result, params$relative_to)
+gca_result <- head(gca_result, params$nplot, "rr_value", params$order_by)
+```
+
+# Most Correlated - `r params$input_name`
+
+<!-- ## Overview -->
+<!-- This report contains an analysis of the `r params$input_name` with the greatest strength of association between patients with your selected criteria. -->
+
+## Relative Risk Plot
+Visualisation of the `r params$nplot` highest scores for the relative risk of `r params$input_name` in cohort `r params$order_by` relative to cohort `r params$relative_to`.
+
+```{r plot, echo=FALSE, fig.dim = c(8, 8), out.width="100%"}
+plot(gca_result)
+```
+
+\pagebreak
+## Relative Risk Data
+Data for the `r params$nplot` highest scores for the relative risk of `r params$input_name` in cohort `r params$order_by` relative to cohort `r params$relative_to`.
+
+```{r table, echo=FALSE}
+render_output_type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+driveanalytics::tabulate(gca_result, render_output_type)
+```

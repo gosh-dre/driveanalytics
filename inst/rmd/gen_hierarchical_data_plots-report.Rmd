@@ -1,0 +1,46 @@
+---
+title: Generates treemaps on hierarchical data
+output: html_document
+params:
+  df_rdv:
+    label: "Input dataframe"
+    value: NA
+  group_cols:
+    label: "Vector of names of group columns in df_rdv; should be in order of hierarchy"
+    value: NA
+  size_col:
+    label: "Name of column to use for count"
+    value: NA
+  stratify_by:
+    label: "Name of column to use for main grouping (e.g. cohorts)"
+    value: NULL
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+reticulate::py_run_string("import sys")
+```
+
+```{r results, echo = FALSE}
+
+if (!is.null(params$df_rdv)) {
+  ghdp_result <- driveanalytics::gen_hierarchical_data_plots(
+    params$df_rdv,
+    params$group_cols,
+    params$size_col,
+    params$stratify_by
+    )
+}
+
+```
+
+# Treemap visualising hierarchical data
+
+```{r plot, echo = FALSE, out.width = '500pt', results = 'asis'}
+if (!is.null(ghdp_result$plt)) {
+  plotly::save_image(ghdp_result$plt, "diagnosis_groups_treemap.png")
+  knitr::include_graphics("diagnosis_groups_treemap.png")
+} else {
+  cat("No treemaps found")
+}
+```

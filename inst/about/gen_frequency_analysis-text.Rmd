@@ -1,0 +1,79 @@
+---
+title: "Frequency Analysis Module"
+output: html_fragment
+---
+
+# Frequency Analysis
+![](https://img.shields.io/badge/driveanalytics_method_family-gen_frequency_analysis-purple.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-experimental-orange.svg) -->
+![](https://img.shields.io/badge/lifecycle-stable-green.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-deprecated-red.svg) -->
+
+```{r, setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(magrittr)
+library(driveanalytics)
+
+knitr::opts_knit$set(echo = FALSE)
+
+# Get the render format
+render_format <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+if (render_format == "") render_format <- "html"
+```
+
+
+## Overview
+This method calculates and presents the frequency of input events, by cohort.
+The primary use for this module is to explore the most common events in each cohort and comparing between them.
+
+There are two metrics calculated in the analysis, based on an input data set and patient cohort.
+
+1. Total count of the number of subjects who have ever had each event, per cohort
+1. Frequency (subjects per number in cohort) of each event type, per cohort
+
+This analysis produces three outputs
+
+1. A bar plot of the top N events, in order of descending frequency.
+1. A table containing count and frequency values for all event types.
+
+## Method
+Event counts are calculated by summing the number of patients who have ever had each event type.
+
+Event frequencies are calculated by dividing the counts by the sizes of each input cohort.
+
+## Considerations and Limitations
+* If a subject has the same event multiple times, this only counts once. Therefore, no individual event can have a frequency higher than 100%.
+
+## Example
+The following frequency analysis plot and results table are from a randomly generated set of 500 events across 100 subjects.
+
+
+This frequency analysis example shows the following information:
+
+1. The most common event in cohort A is *Event W*, with 33.33 % of the cohort having had it during the period under consideration.
+1. Comparatively, only 16.28 % of cohort B had this event.
+1. The most common event in cohort B is *Event O*, with 27.91 % of the cohort having had it during the period under consideration.
+1. Cohort A had a total of 257 different event types, averaging 4.5 events per subject.
+1. Cohort B had a total of 205 different event types, averaging 4.8 events per subject.
+
+```{r, example, echo=FALSE, dpi=200, out.width="100%", fig.dim = c(8, 3)}
+
+# Create a random sample of patients in two cohorts and assign random events
+set.seed(123)
+n <- 100
+nev <- n * 5
+df_pde <- tibble::tibble(
+  project_id = 1:n,
+  cohort_id = project_id,
+  cohort = sample(c("A","B"), n, replace = TRUE),
+)
+df_dia <- df_pde %>%
+  dplyr::sample_n(nev, replace = TRUE) %>%
+  dplyr::mutate(event = sample(paste0("Event ", LETTERS), nev, replace = TRUE))
+
+# Perform frequency analysis and get results
+gfa <- driveanalytics::gen_frequency_analysis(df_dia, df_pde, "event", "cohort")
+gfa_head <- head(gfa, 26)
+plot(gfa_head)
+tabulate(gfa_head, render_format)
+
+```

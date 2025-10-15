@@ -1,0 +1,6 @@
+^renv$
+^renv\.lock$
+^driveanalytics\.Rproj$
+^\.Rproj\.user$
+^doc$
+^Meta$

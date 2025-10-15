@@ -1,0 +1,12 @@
+.RData
+.Rproj.user
+.Rhistory
+README.html
+*.Rcheck
+inst/doc
+inst/about/*.nb.html
+.RData
+/doc/
+/Meta/
+*.tar.gz
+log/

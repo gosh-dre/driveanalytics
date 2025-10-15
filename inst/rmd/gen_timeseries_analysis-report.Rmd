@@ -1,0 +1,38 @@
+---
+title: "gen_timeseries_analysis-report"
+params:
+  df_rdv: NULL
+  df_pde: NULL
+  grouping_cols: NULL
+  value_col: NULL
+  datetime_col: NULL
+  cohort_col: NULL
+  hor_axis: "Years since entering cohort"
+  overlay_cohorts: FALSE
+  aggregate_cohorts: "None"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r run-analysis, echo=FALSE}
+result <- driveanalytics::gen_timeseries_analysis(
+  params$df_rdv, params$df_pde, params$grouping_cols, params$value_col,
+  params$datetime_col, params$cohort_col, hor_axis = params$hor_axis,
+  overlay_cohorts = params$overlay_cohorts,
+  aggregate_cohorts = params$aggregate_cohorts
+)
+
+```
+
+<!-- ## Table -->
+<!-- ```{r table, echo=FALSE} -->
+<!-- DT::datatable(result$df) -->
+<!-- ``` -->
+
+## Plot
+```{r plot, echo=FALSE, warning=FALSE, error=FALSE}
+result$plt
+```

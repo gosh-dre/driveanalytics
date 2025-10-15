@@ -1,0 +1,52 @@
+---
+title: "List patients by cohort"
+output: html_fragment
+---
+
+# Cohort Patient List
+![](https://img.shields.io/badge/driveanalytics_method_family-gen_cohort_list-purple.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-experimental-orange.svg) -->
+![](https://img.shields.io/badge/lifecycle-stable-green.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-deprecated-red.svg) -->
+
+```{r, setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(magrittr)
+library(driveanalytics)
+library(DT)
+
+knitr::opts_knit$set(echo = FALSE)
+
+# Get the render format
+render_format <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+if (render_format == "") render_format <- "html"
+```
+
+## Overview
+This analytics module simply formats and prints the basic demographic information for each patient in each cohort.
+
+## Considerations and Limitations
+* This should be used cautiously as it will expose patient identifiable information
+
+## Example
+
+```{r, example, echo=FALSE, results='asis'}
+
+# NOTE - this does not work without also attaching the DT javascript to the html page
+
+# Create a random sample of patients in two cohorts and assign random events
+set.seed(123)
+n <- 10
+df_pde <- tibble::tibble(
+  project_id = 1:n,
+  cohort_id = project_id,
+  cohort = sample(c("A","B"), n, replace = TRUE),
+  # Random names that are obviously not real people
+  forename = paste0(sample(LETTERS, n, replace = TRUE), sample(letters, n, replace = TRUE)),
+  surname = paste0(sample(LETTERS, n, replace = TRUE), sample(letters, n, replace = TRUE), sample(letters, n, replace = TRUE)),
+  cohort_entry_date = lubridate::as_date(sample(as.Date("2000-1-1"):as.Date("2001-1-1"), n, replace = TRUE)),
+  cohort_exit_date = lubridate::as_date(sample(as.Date("2002-1-1"):as.Date("2003-1-1"), n, replace = TRUE)),
+)
+
+# Perform frequency analysis and get results
+driveanalytics::pde_cohort_list(df_pde)
+```

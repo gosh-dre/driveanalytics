@@ -1,0 +1,77 @@
+---
+title: "Event Time Analysis Module"
+output: html_fragment
+---
+
+# Event Time Analysis
+![](https://img.shields.io/badge/driveanalytics_method_family-gen_event_time_analysis-purple.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-experimental-orange.svg) -->
+![](https://img.shields.io/badge/lifecycle-stable-green.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-deprecated-red.svg) -->
+
+```{r, setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(magrittr)
+library(driveanalytics)
+
+knitr::opts_knit$set(echo = FALSE)
+
+# Get the render format
+render_format <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+if (render_format == "") render_format <- "html"
+```
+
+## Overview
+
+The primary use for this module is to explore and compare the event length distribution between groups (cohorts).
+
+For each group, output includes a histogram, box plot and summary statistics table for the event of interest.
+
+## Methods
+
+For each event, the length is calculated using the start and end date of the event.
+
+The user can choose between:
+
+-   A histogram of the raw or log-transformed event lengths per event type per group
+-   A box plot of the event lengths per event type per group (with the option to plot outliers)
+
+The summary table shows the median, mean, and IQR of the event length as well as the event and patient count split by event type and patient group.
+
+## Considerations
+
+This module does not aggregate data at patient level - the output is based on all data points.
+Event periods may overlap - this module does not currently check for overlapping events. A more accurate calculation of event length is available in the distribution plots module.
+
+## Example
+
+The following plot and results table are based on a randomly generated set of 10 events across 100 patients.
+
+We can see that
+
+-   The median length of Event J is 5 days in cohort A and 8 days in cohort B.
+-   The spread in the length of Event D is larger in cohort A that cohort B.
+
+```{r, example, echo=FALSE, dpi=200, out.width="100%", fig.dim = c(8, 3)}
+
+# create example data
+set.seed(123)
+n <- 100
+n_events <- 10
+df_events <- tibble::tibble(
+  project_id = 1:n,
+  cohort_id = project_id,
+  cohort = sample(c("A","B"), n, replace = TRUE),
+)
+df_events$event <- sample(paste0("Event ", LETTERS[1:n_events]), n, replace = TRUE)
+df_events$start_datetime <- sample(
+  seq(as.Date("2010-01-01"), as.Date("2020-10-01"), by = "month"),
+  size = n,
+  replace = TRUE
+)
+df_events$end_datetime <- df_events$start_datetime + sample(1:10, 100, replace = TRUE)
+
+# get event time analysis results
+geta <- driveanalytics::gen_event_time_analysis(df_events, "event", "cohort")
+geta$plt
+knitr::kable(geta$df) %>% kableExtra::scroll_box(width = "100%") %>% kableExtra::kable_styling(font_size = 10)
+```

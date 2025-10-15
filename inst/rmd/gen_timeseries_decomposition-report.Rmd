@@ -1,0 +1,16 @@
+---
+title: Generic decomposition of a timeseries by Prophet
+output: html_document
+params:
+  df_rdv: NA
+  title: NA
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Results
+```{r run-analysis, echo=FALSE}
+mod_output <- driveanalytics::gen_timeseries_decomposition(params$df_rdv, params$title)
+```

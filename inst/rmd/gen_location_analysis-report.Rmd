@@ -1,0 +1,112 @@
+---
+title: Simple location data analysis in any generic RDV
+output: html_document
+params:
+  df_rdv:
+    label: "RDV"
+    value: NA
+  shp_path:
+    label: "Shapefile path"
+    value: NA
+  shp_colname:
+    label: "Name of column in shapefile to use"
+    value: "LAD20NM"
+  df_colname:
+    label: "Name of column in RDV to use"
+    value: "District"
+  rank_colname:
+    label: "Name of rank column in external index data"
+    value: "imd_rank"
+  decile_colname:
+    label: "Name of decile column in external index data"
+    value: "Index.of.Multiple.Deprivation..IMD..Decile"
+  destination_long_lat:
+    label: "Longitude and latitude of destination point"
+    value: NA
+  stratify_by:
+    label: "stratify_by"
+    value: "cohort"
+  distance:
+    label: "distribution of distance or time to destination"
+    value: "travel_km"
+  group_cols:
+    label: "Grouping columns"
+    value: "County"
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r results, echo = FALSE}
+
+gla_result <- NULL
+
+if (!is.null(params$df_rdv)) {
+
+  if (any(params$destination_long_lat == 'NA')) {
+    destination_long_lat <- c(-0.120299, 51.522388)
+  } else {
+    destination_long_lat <- params$destination_long_lat
+  }
+  gla_result <- driveanalytics::gen_location_analysis(
+    params$df_rdv,
+    params$shp_path,
+    params$shp_colname,
+    params$df_colname,
+    params$rank_colname,
+    params$decile_colname,
+    destination_long_lat,
+    params$stratify_by,
+    params$distance,
+    params$group_cols
+  )
+
+}
+
+```
+
+# Home locations
+
+```{r maps, echo=FALSE, message=FALSE, results='asis', fig.align='center'}
+
+if (!is.null(gla_result$list_maps)) {
+  for (i in 1:length(gla_result$list_maps)) {
+    filename <- paste0(gla_result$list_maps[[i]]$group, "map.png")
+    mapview::mapshot(gla_result$list_maps[[i]]$map, file = filename)
+    cat(gla_result$list_maps[[i]]$group, " \n")
+    cat(paste0("![](", filename, "){width=70%}"), " \n")
+  }
+} else {
+  cat("No location data\n")
+}
+
+if (!is.null(gla_result$distance_density) && !is.null(gla_result$distance_boxplot)) {
+  gla_result$distance_density
+  gla_result$distance_boxplot
+} else {
+  cat("\nNo travel distance data")
+}
+
+```
+
+# Analysis of Index of Multiple Deprivation
+
+```{r index_plots, echo=FALSE, message=FALSE, results='asis'}
+
+if (!is.null(gla_result$imd_bar_plot) && !is.null(gla_result$imd_violin_plot)) {
+  gla_result$imd_bar_plot
+  gla_result$imd_violin_plot
+} else {
+  cat("No IMD data")
+}
+
+```
+
+Digital boundaries Source: Office for National Statistics licensed under the Open Government Licence version 3.0 <https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/>
+
+OSRM project licensed under the BSD 2-Clause "Simplified" Licence <https://github.com/Project-OSRM/osrm-backend/blob/master/LICENSE.TXT>
+
+Map data from OpenStreetMap <https://www.openstreetmap.org/copyright>
+
+Maps are created using Leaflet <https://github.com/Leaflet/Leaflet/blob/main/LICENSE>

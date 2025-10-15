@@ -1,0 +1,71 @@
+Package: driveanalytics
+Title: DRIVE Analytics Package
+Version: 0.16.0
+Authors@R: c(
+    person("Stuart", "Bowyer", email = "",
+           role = c("aut", "cre")),
+    person("Eleni", "Pissaridou", email = "",
+           role = c("aut")),
+    person("Ewart", "Sheldon", email = "",
+           role = c("aut")))
+Description: R package containing core analytics functionality.
+License: file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+StagedInstall: no
+Depends:
+    R (>= 4.0),
+Imports:
+    bs4Dash,
+    config,
+    data.table,
+    data.tree,
+    dplyr,
+    DT,
+    fontawesome (>= 0.3.0),
+    forcats,
+    foreach,
+    geosphere,
+    ggplot2,
+    kableExtra,
+    knitr,
+    leaflet,
+    logger,
+    lubridate,
+    magrittr,
+    plotly,
+    pryr,
+    plyr,
+    qpdf,
+    readr,
+    rjson,
+    rlang,
+    rmarkdown,
+    sf,
+    shiny,
+    shinyjs,
+    shinyWidgets,
+    stats,
+    stringr (>= 1.5.0),
+    survminer,
+    tidyr,
+    tidyselect,
+    XML,
+    prepressr (>= 0.0.1),
+    arrow,
+    bookdown,
+    ggbeeswarm,
+    doParallel,
+    lifecycle,
+    RcppParallel,
+    loo,
+    QuickJSR,
+    prophet,
+    mapview,
+    markdown
+Suggests:
+    testthat (>= 3.0.0),
+    lintr (>= 2.0.1)
+Config/testthat/edition: 3
+VignetteBuilder: knitr

@@ -1,0 +1,72 @@
+---
+title: "Recurrence Analysis Module"
+output: html_fragment
+---
+
+# Recurrence Analysis
+![](https://img.shields.io/badge/driveanalytics_method_family-gen_recurrence_analysis-purple.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-experimental-orange.svg) -->
+![](https://img.shields.io/badge/lifecycle-stable-green.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-deprecated-red.svg) -->
+
+```{r, setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(magrittr)
+library(driveanalytics)
+
+knitr::opts_knit$set(echo = FALSE)
+
+# Get the render format
+render_format <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+if (render_format == "") render_format <- "html"
+```
+
+## Overview
+This method calculates the frequency an event happened. It takes in a column of interest and will return the distance between events as days between each event.
+
+The analysis produces two outputs.
+
+1. A table of summary statistics (mean, median, range, and total events)
+2. A box plot of the time between events.
+
+## Method
+The method goes through the column and for each event it identifies the previous time this occurred and calculates the time between these events as days between.
+
+## Considerations and Limitations
+* It assumes events have the same name. It will not link events where there is a small variation, e.g. a different mdeication dose.
+
+## Example
+The following recurrence analysis plot, summary and results table are from a randomly generated set of 10 patients with 100 events in total.
+
+
+This recurrence analysis example shows the following information:
+
+1. A box plot of the time between events for *Event J*.
+2. Summary stats for all events.
+3. The complete dataframe of all events with time between events calculated where applicable.
+
+```{r, example, echo=FALSE, dpi=200, out.width="100%", fig.dim = c(8, 3)}
+
+# Create a random sample of patients in two cohorts and assign random events
+set.seed(123)
+n <- 100
+n_events <- 10
+df_events <- tibble::tibble(
+  project_id = sample(10, size = n, replace = TRUE),
+  cohort_id = project_id,
+  cohort = sample(c("A","B"), n, replace = TRUE),
+)
+df_events$event <- sample(paste0("Event ", LETTERS[1:n_events]), n, replace = TRUE)
+df_events$start_datetime <- sample(
+  seq(as.Date("2010-01-01"), as.Date("2020-10-01"), by = "month"),
+  size = n,
+  replace = TRUE
+)
+
+# Perform recurrence analysis and get results
+gra <- driveanalytics::gen_recurrence_analysis(df_events, "event", "cohort")
+plot(gra, "Event J", TRUE)
+# sessionInfo()
+summary <- driveanalytics::tabulate(gra)
+print(gra)
+print(summary)
+```

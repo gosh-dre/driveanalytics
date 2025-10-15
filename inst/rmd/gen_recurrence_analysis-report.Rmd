@@ -1,0 +1,53 @@
+---
+title: Analysis of the periodicity of event recurrence
+output: html_document
+params:
+  input_name:
+    label: "Input data name"
+    value: "UNKNOWN"
+  df_rdv:
+    label: "RDV"
+    value: "?"
+  colm :
+    label: "column to group by"
+    value: "?"
+  event_of_interest:
+    label: "event of interest"
+    value: "?"
+  cohort_col:
+    label: "Stratify column"
+    value: NULL
+  plot_options:
+    label: "use outliers"
+    value: FALSE
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r run-analysis}
+gra_result <- driveanalytics::gen_recurrence_analysis(params$df_rdv, params$colm, params$cohort_col)
+```
+
+## Results
+
+### Table
+
+A summary table based on `r params$colm`.
+
+```{r table}
+driveanalytics::tabulate(gra_result)
+
+```
+
+\pagebreak
+### Boxplot
+
+Boxplots of the time between `r params$event_of_interest`  based on `r params$colm`.
+
+```{r plot}
+plot.gen_recurrence_analysis(gra_result, params$event_of_interest, params$plot_options)
+```

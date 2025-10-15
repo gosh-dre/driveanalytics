@@ -1,0 +1,6 @@
+default:
+  data_dir: ""
+  app_yaml: "inst/apps/*"
+  external_data_dir: ""
+  n_max: Inf
+  infrastructure: local

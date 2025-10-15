@@ -1,0 +1,10 @@
+---
+title:
+output: html_document
+params:
+  df: NA
+  var_name: NA
+  var1: NA
+  var2: NA
+  c_text: NA
+---

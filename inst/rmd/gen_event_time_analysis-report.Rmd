@@ -1,0 +1,31 @@
+---
+title: Visualise a selected event
+output: html_document
+params:
+  df: NA
+  event_col: NA
+  stratify_by: "cohort"
+  plot_type: "Boxplot"
+  plot_options: FALSE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE)
+```
+
+```{r run-analysis}
+result <- driveanalytics::gen_event_time_analysis(params$df, params$event_col, params$stratify_by, params$plot_type, params$plot_options)
+```
+
+# `r description`
+## Plot
+```{r plot, fig.dim = c(8,8), out.width="100%"}
+result$plt
+```
+
+\pagebreak
+## Summary
+```{r table, results='asis'}
+options(xtable.comment = FALSE)
+print(xtable::xtable(result$df), size="\\fontsize{7pt}{8pt}\\selectfont", include.rownames=FALSE)
+```

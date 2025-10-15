@@ -1,0 +1,86 @@
+---
+title: "Timeseries Analysis"
+output: html_fragment
+---
+
+# Timeseries Analysis
+![](https://img.shields.io/badge/driveanalytics_method_family-gen_timeseries_analysis-purple.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-experimental-orange.svg) -->
+<!-- ![](https://img.shields.io/badge/lifecycle-stable-green.svg) -->
+![](https://img.shields.io/badge/lifecycle-deprecated-red.svg)
+
+```{r, setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(magrittr)
+library(driveanalytics)
+
+knitr::opts_knit$set(echo = FALSE)
+
+# Get the render format
+render_format <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+if (render_format == "") render_format <- "html"
+```
+
+## Overview
+This method plots timeseries trends for a value-based datatype. It can be used to visualise how a specific clinical metric (e.g., a lab test value) changes either with age or since a specific event.
+
+## Method
+
+1. The timeseries trend is created using [GAM](https://stat.ethz.ch/R-manual/R-devel/library/mgcv/html/gam.html)
+
+## Considerations and Limitations
+* The trend line is fitted arbitrarily and should be checked to ensure it is meaningful
+* Therefore, this method is deprecated now as the timeseries analysis can be better done with the GAMLSS module which has greater flexibility over parameter selection for the fit
+
+## Example
+
+This example shows how a randomly generated set of values change over time and can be plotted and fit.
+
+The output shows:
+
+1. The values for metric X, in cohort A, increase linearly from approximately 4.0 at birth, to approximately 7.5
+1. The values for metric X, in cohort B, are static for all ages at approximately 3.0
+1. The values for metric Y, in cohort A, are static for all ages at approximately 6.0
+1. The values for metrix Y, in cohory B, decrease linearly from approximately 6.0 at birth to approximately 3.0
+
+```{r, example, echo=FALSE, dpi=200, out.width="100%", fig.dim = c(8, 6)}
+
+# Create a random sample of patients in two cohorts and assign random events
+set.seed(123)
+n = 500
+nev = n * 4
+df_pde <- tibble::tibble(
+  project_id = 1:n,
+  cohort_id = project_id,
+  cohort = sample(c("A","B"), n, replace = TRUE),
+  birth_date = as.Date("2020-1-1")
+)
+df_event <- df_pde %>%
+  dplyr::sample_n(nev, replace = TRUE) %>%
+  dplyr::select(-birth_date) %>%
+  dplyr::mutate(
+    metric = sample(paste("Metric", c("X","Y")), nev, replace = TRUE),
+    taken_datetime = as.Date("2020-1-1") + lubridate::days(sample(1:1004, nev, replace = T)),
+    value = dplyr::if_else(
+      cohort == "A",
+      dplyr::if_else(
+        metric == "Metric X",
+        as.numeric(taken_datetime - as.Date("2020-1-1")) / 1000 * 3 + 4,
+        4
+      ),
+      dplyr::if_else(
+        metric == "Metric X",
+        6,
+        as.numeric(taken_datetime - as.Date("2020-1-1")) / 1000 * -3 + 6
+      )
+    ),
+    value = value + rnorm(nev)
+  )
+
+gta <- gen_timeseries_analysis(
+  df_event, df_pde, "metric", "value", "taken_datetime", "cohort",
+  hor_axis = "Years since birth", overlay_cohorts = FALSE
+)
+
+gta$plt
+
+```

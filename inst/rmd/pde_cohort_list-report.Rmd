@@ -1,0 +1,11 @@
+---
+title: List patients by cohort
+output: html_document
+params: NONE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# This function is not supported by output reports

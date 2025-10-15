@@ -1,0 +1,76 @@
+---
+params:
+  input_name:
+    label: "Input data name"
+    value: "UNKNOWN"
+  df_rdv:
+    label: "Input RDV"
+    value: "?"
+  df_pde:
+    label: "Demographics RDV"
+    value: "?"
+  event_col:
+    label: "Event column"
+    value: "?"
+  cohort_col:
+    label: "Stratify column"
+    value: "cohort"
+  order_by:
+    label: "Order by stratify value"
+    value: NULL
+  nplot:
+    label: "Number to plot"
+    value: 10
+  new_col:
+    label: "Create new column to analyse?"
+    value: FALSE
+  new_col_breaks:
+    label: "A numeric vector or a single number for cut()"
+    value: NULL
+  new_col_labels:
+    label: "Labels for the categories to use in cut()"
+    value: NULL
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+if (params$input_name != "UNKNOWN") {
+  description <- params$input_name
+} else if (!is.null(names(params$event_col)[[1]])) {
+  description <- names(params$event_col)[[1]]
+} else {
+  description <- params$event_col[[1]]
+}
+
+```
+
+
+```{r run-analysis}
+gfa_result <- driveanalytics::gen_frequency_analysis(params$df_rdv, params$df_pde, params$event_col, params$cohort_col, params$new_col, params$new_col_breaks, params$new_col_labels)
+gfa_result_n <- head(gfa_result, params$nplot, params$order_by)
+gfa_result_all <- head(gfa_result, 17, params$order_by)
+```
+
+# Most Common - `r description`
+
+<!-- ## Overview -->
+<!-- This report contains an analysis of the most common `r description` for patients with your selected criteria. -->
+
+## Frequency Plot
+Visualisation of the `r params$nplot` most common `r description` (in first cohort).
+<!-- in cohort`r params$order_by`. -->
+
+```{r plot, fig.dim = c(8,8), out.width="100%"}
+plot(gfa_result_n)
+```
+
+\pagebreak
+## Frequency Data
+Data for the most common `r description` (in first cohort).
+<!-- in cohort `r params$order_by`. -->
+
+```{r table}
+render_output_type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+driveanalytics::tabulate(gfa_result_all, render_output_type)
+```

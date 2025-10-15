@@ -1,0 +1,72 @@
+---
+title: "Event count analysis"
+output: html_fragment
+---
+
+# Event Count
+![](https://img.shields.io/badge/driveanalytics_method_family-gen_event_count-purple.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-experimental-orange.svg) -->
+![](https://img.shields.io/badge/lifecycle-stable-green.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-deprecated-red.svg) -->
+
+```{r, setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(magrittr)
+library(driveanalytics)
+
+knitr::opts_knit$set(echo = FALSE)
+
+# Get the render format
+render_format <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+if (render_format == "") render_format <- "html"
+```
+
+## Overview
+This method computes and plots how many unique events patients typically have, by cohort. This can be used to identify if cohorts are more or less complex than each other.
+
+## Method
+This method simply computes the number of unique events that occur for each patient in each cohort and aggregates these values into a table and histogram.
+
+## Considerations and Limitations
+* None
+
+## Example
+The following example shows the number of unique events that typically happen per patient in two cohorts.
+
+The plot and table show the following information:
+
+1. Cohort A typically has a lower number of events per patient than cohort B
+1. The modal number of unique events per patient in cohort A is about 10 and in cohort B is about 20.
+1. Two patients in cohort A and zero patients in cohort B had no events at all.
+1. The maximum number of unique events per patient is 36, a patient from cohort B.
+
+```{r, example, echo=FALSE, dpi=200, out.width="100%", fig.dim = c(8, 3)}
+
+# Create a random sample of patients in two cohorts and assign random events
+set.seed(123)
+n <- 1000
+nev <- n * 5
+df_pde <- tibble::tibble(
+  project_id = 1:n,
+  cohort_id = project_id,
+  cohort = sample(c("A","B"), n, replace = TRUE),
+)
+df_dia <- df_pde %>%
+  dplyr::mutate(
+    nreps = pmax(dplyr::if_else(
+      cohort == "A",
+      as.integer(rnorm(dplyr::n(), 10, 4)),
+      as.integer(rnorm(dplyr::n(), 20, 5))
+    ), 0)
+  ) %>%
+  dplyr::slice(rep(seq(dplyr::n()), nreps)) %>%
+  dplyr::group_by(project_id) %>%
+  dplyr::mutate(event = 1:dplyr::n()) %>%
+  dplyr::ungroup() %>%
+  dplyr::arrange(project_id)
+
+# Perform frequency analysis and get results
+gec <- driveanalytics::gen_event_count(df_dia, df_pde, "event")
+plot(gec)
+tabulate(gec, render_format)
+
+```

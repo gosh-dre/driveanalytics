@@ -1,0 +1,37 @@
+---
+params:
+  input_name:
+    label: "Input data name"
+    value: "UNKNOWN"
+  df_rdv:
+    label: "RDV"
+    value: "?"
+  event_col:
+    label: "Event column"
+    value: "?"
+  stratify_by:
+    label: "Stratify column"
+    value: NULL
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r run-analysis, echo=FALSE}
+gcr_result <- driveanalytics::gen_categorical_ratios(params$df_rdv, params$event_col, params$stratify_by)
+```
+
+# Ratios of - `r params$input_name`
+
+<!-- ## Overview -->
+<!-- This report contains an analysis of the `r params$input_name` with the greatest strength of association between patients with your selected criteria. -->
+
+## Result
+Visualisation of `r params$input_name` breakdown by cohort.
+
+```{r plot, echo=FALSE, fig.dim = c(8, 8), out.width="100%"}
+print(gcr_result$plt)
+```
+`r gcr_result$test_res`

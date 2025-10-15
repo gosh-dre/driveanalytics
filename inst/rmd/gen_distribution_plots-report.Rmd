@@ -1,0 +1,114 @@
+---
+title: Generate distribution plots
+output: html_document
+params:
+  df_rdv:
+    label: "Dataframe"
+    value: NA
+  col:
+    label: "Column to plot"
+    value: "length"
+  stratify_by:
+    label: "Grouping column"
+    value: NULL
+  filter_col:
+    label: "Column to filter values on"
+    value: NA
+  filter_val:
+    label: "Value to select"
+    value: NA
+  calc_length:
+    label: "Calculate length?"
+    value: FALSE
+  calc_diff:
+    label: "Calculate difference between start and end datetime?"
+    value: FALSE
+  side_by_side:
+    label: "Plot side by side?"
+    value: TRUE
+  filter_condition:
+    label: "Filter RDV"
+    value: NULL
+  description:
+    label: "Label used in report"
+    value: NA
+  transform:
+    label: "Transformation of data"
+    value: "No transformation"
+  density_bw:
+    label: "Adjust smoothing bandwidth in density plot"
+    value: 1
+---
+
+```{r setup, include = FALSE}
+
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+
+# If a filter column and value is provided, filter the input RDV before passing
+
+my_data <- list()
+
+if (!is.null(params$df_rdv)) {
+  if ((params$filter_col == 'NA') || (params$filter_val == 'NA')) {
+    df <- params$df_rdv
+  } else {
+    for (i in params$filter_val) {
+      my_data[[i]] <- params$df_rdv %>%
+        dplyr::filter(!!as.name(params$filter_col) == !!i)
+    }
+  }
+
+  # If no description
+  if (params$description == 'NA') {
+    description <- params$filter_val
+  } else {
+    description <- params$description
+  }
+}
+
+```
+
+`r if(!is.null(params$df_rdv)){paste0("# Value Distributions for ", description)}`
+
+
+```{r results, fig.dim = c(8, 8), out.width="100%", comment=NA, results='asis'}
+
+if (!is.null(params$df_rdv)) {
+  if (length(my_data) > 0) {
+    count = 1
+    for (i in my_data) {
+      cat(paste0("\n\n## ", description[count], "\n"))
+      gdp <- driveanalytics::gen_distribution_plots(
+        i,
+        params$col,
+        params$stratify_by,
+        side_by_side = FALSE,
+        params$calc_length,
+        params$calc_diff,
+        params$filter_condition,
+        xlab = params$description
+      )
+      grid::grid.newpage()
+      grid::grid.draw(gdp$plot)
+      cat(gdp$test_result)
+      knitr::kable(gdp$tbl_n, format = "latex", row.names = FALSE)
+      count = count + 1
+    }
+  } else {
+    gdp <- driveanalytics::gen_distribution_plots(
+      df,
+      params$col,
+      params$stratify_by,
+      side_by_side = FALSE,
+      params$calc_length,
+      params$calc_diff,
+      params$filter_condition,
+      xlab = description
+    )
+    grid::grid.draw(gdp$plot)
+    cat(gdp$test_result)
+    knitr::kable(gdp$tbl_n, format = "latex", row.names = FALSE)
+  }
+}
+
+```

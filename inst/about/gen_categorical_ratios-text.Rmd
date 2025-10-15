@@ -1,0 +1,68 @@
+---
+title: "Categorical Ratio Analysis"
+output: html_fragment
+---
+
+# Categorical Ratio Analysis
+![](https://img.shields.io/badge/driveanalytics_method_family-gen_categorical_ratios-purple.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-experimental-orange.svg) -->
+![](https://img.shields.io/badge/lifecycle-stable-green.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-deprecated-red.svg) -->
+
+
+
+```{r, setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(magrittr)
+library(driveanalytics)
+
+knitr::opts_knit$set(echo = FALSE)
+
+# Get the render format
+render_format <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+if (render_format == "") render_format <- "html"
+```
+
+## Overview
+This method plots the breakdown of categorical data by cohorts in a bar plot. It includes some statistical testing for significance. It can be used to identify if a specific category of event is more or less common in a specific cohort.
+
+## Method
+This method compares the ratios of categories between cohorts. The statistical significance is computed using the chi square test.
+
+## Considerations and Limitations
+* Test results should not be interpreted, test is for demo purposes only (see Eleni)
+* This has been designed for use with mutually exclusive categories such as sex or ethnicity
+
+## Example
+The following example shows how a value that can have one of two categorical values (`Cat 1` and `Cat 2`) can be explored.
+
+This examples shows the following information:
+
+1. In cohort A, approximately 2/3 of the patients are in `Cat 1` and 1/3 are in `Cat 2`.
+1. In cohort B, the reverse is true. Approximately 1/3 of the patients are in `Cat 1` and 2/3 are in `Cat 2`.
+1. The Pearson`s Chi-squared test has identified that these two cohorts are significantly different based on this variable (p-value < 0.01)
+
+```{r, example, echo=FALSE, dpi=200, out.width="100%", fig.dim = c(8, 3)}
+
+# Create a random sample of patients in two cohorts and assign random events
+set.seed(123)
+n <- 100
+df_pde <- tibble::tibble(
+  project_id = 1:n,
+  cohort_id = project_id,
+  cohort = sample(c("A","B"), n, replace = TRUE),
+) %>%
+dplyr::mutate(
+  category = dplyr::if_else(
+    cohort == "A",
+    dplyr::if_else(runif(dplyr::n()) > 0.33, "Cat 1", "Cat 2"),
+    dplyr::if_else(runif(dplyr::n()) > 0.66, "Cat 1", "Cat 2"),
+  )
+)
+
+# Perform frequency analysis and get results
+gcr <- gen_categorical_ratios(df_pde, "category", "cohort")
+gcr$plt
+
+```
+
+`r gcr$test_res`

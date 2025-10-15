@@ -1,0 +1,69 @@
+---
+title: "Generic decomposition of a timeseries by Prophet"
+output: html_fragment
+---
+
+# Timeseries Decomposition
+![](https://img.shields.io/badge/driveanalytics_method_family-gen_timeseries_decomposition-purple.svg)
+![](https://img.shields.io/badge/lifecycle-experimental-orange.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-stable-green.svg) -->
+<!-- ![](https://img.shields.io/badge/lifecycle-deprecated-red.svg) -->
+
+```{r, setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(magrittr)
+library(driveanalytics)
+
+knitr::opts_knit$set(echo = FALSE)
+
+# Get the render format
+render_format <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+if (render_format == "") render_format <- "html"
+```
+
+## Overview
+This method is under development and does not support all of the configuration required for a full timeseries decomposition yet. Cohort comparison is not supported.
+
+This analytics method takes a series of event-based data and uses the Prophet open-source timeseries decomposition library to extract periodic seasonalities in the events.
+
+## Method
+
+1. The event-based data are converted into weekly average event frequencies, i.e., how many of this type of event happen per week
+1. The [Prophet](https://facebook.github.io/prophet/) library is used to extract year-on-year trends and monthly periodicity to model the events
+1. The trend and monthly periodicity are extrapolated to predict future event rates
+
+## Considerations and Limitations
+* We have studied internally how timeseries decomposition can be used to model periodic timeseries data to understand deviations from trends and potientially predict future usage [here](https://adc.bmj.com/content/107/12/e36); however, this method has not been fully validated for all applications. It will require analytics support to ensure the models created are valid and meaningful.
+
+## Example
+
+This example shows how a randomly generated event can be modelled and predicted with this method.
+
+The output shows:
+
+1. The black spots show the weekly number of events observed per week since 2020.
+1. The blue line on the top plot shows the modelled timeseries for the observed data, which is also extrapolated forwards past the last observation.
+1. The light blue section is the 95% confidence interval
+1. The second plot shows the overall trend for the data, which is linearly increasing.
+1. The third plot shows the periodic yearly trend, that is approximately 40% high in the winter and 40% lower in the summer.
+
+
+```{r, example, echo=FALSE, dpi=200, out.width="100%", fig.dim = c(8, 6)}
+
+# Create a random sample of patients in two cohorts and assign random events
+set.seed(123)
+n <- 30000
+df_wst <- tibble::tibble(
+  start_datetime = as.Date("2020-1-1") + lubridate::days(sample(1:1004, n, replace = T)),
+  day = lubridate::yday(start_datetime),
+  prob_cyclical = cos(2 * pi * (day / 365)) * 0.2 + 0.5,
+  prob_growth = as.numeric(start_datetime - as.Date("2020-1-1")) / 1000
+) %>%
+  dplyr::filter(
+    # Randomly drop events earlier in the data to make an linear growth trend
+    runif(n) < prob_growth,
+    # Randomly drop summer events to make a periodic cycle
+    runif(n) < prob_cyclical,
+  )
+driveanalytics::gen_timeseries_decomposition(df_wst)
+
+```

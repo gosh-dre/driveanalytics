@@ -1,0 +1,61 @@
+---
+params:
+  input_name:
+    label: "Input data name"
+    value: "UNKNOWN"
+  df:
+    label: "Input RDV"
+    value: "?"
+  df_pde:
+    label: "Demographics RDV"
+    value: "?"
+  event_col:
+    label: "Event column"
+    value: "?"
+  cohort_col:
+    label: "Cohort column"
+    value: "cohort"
+  text:
+    label: "Explanatory text"
+    value: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+if (params$input_name != "UNKNOWN") {
+  description <- params$input_name
+} else if (!is.null(names(params$event_col)[[1]])) {
+  description <- names(params$event_col)[[1]]
+} else {
+  description <- params$event_col[[1]]
+}
+```
+
+
+```{r run-analysis}
+gec_result <- driveanalytics::gen_event_count(params$df, params$df_pde, params$event_col, params$cohort_col)
+```
+
+# Prevalence of events - `r description`
+
+<!-- ## Overview -->
+<!-- This report contains an analysis of the most common `r description` for patients with your selected criteria. -->
+
+## Prevalence Plot
+Visualisation of the number of unique `r description` events per patient, by cohort.
+`r params$text`
+
+```{r plot, fig.dim = c(8, 8), out.width="100%"}
+plot(gec_result)
+```
+
+\pagebreak
+## Frequency Data
+Data for the number of unique `r description` events per patient, by cohort.
+
+```{r table, out.width="100%"}
+render_output_type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+#gec_head <- head(gec_result, n = 30)
+driveanalytics::tabulate(gec_result, render_output_type)
+```

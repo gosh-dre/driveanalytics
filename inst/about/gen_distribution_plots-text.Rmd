@@ -1,0 +1,77 @@
+---
+title: "Distribution Plots Module"
+output: html_fragment
+---
+
+# Distribution Plots
+![](https://img.shields.io/badge/driveanalytics_method_family-gen_distribution_plots-purple.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-experimental-orange.svg) -->
+![](https://img.shields.io/badge/lifecycle-stable-green.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-deprecated-red.svg) -->
+
+```{r, setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(magrittr)
+library(driveanalytics)
+
+knitr::opts_knit$set(echo = FALSE)
+
+# Get the render format
+render_format <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+if (render_format == "") render_format <- "html"
+```
+
+## Overview
+
+The primary use for this module is to explore the distribution of numeric measurements and compare groups.
+
+This analysis produces three outputs
+
+1.  A kernel density estimate plot.
+2.  A box plot.
+3.  The results of a non-parametric test.
+
+Outputs 1 and 2 are split into groups if a grouping variable is provided, for example, when the user defines two cohorts in the cohort selection.
+Output 3 requires a grouping variable.
+
+## Methods
+
+A Kruskal-Wallis Rank Sum Test is performed to test if the location parameters of the distribution are the same in each group. The test runs when there are two or more patient groups and each group has five or more patients.
+
+## Considerations and Limitations
+
+In the future, we will revisit the tests performed on this data. Currently, the results of the Kruskal-Wallis Rank Sum Test should not be interpreted. Our samples are not independent; patients may be belong to more than one group and may have repeated measurements.
+
+## Example
+
+```{r, example, echo=FALSE, out.width="100%", fig.dim = c(8, 3)}
+
+# Create a random sample of patients in two cohorts and assign random events
+set.seed(123)
+n <- 100
+
+df_example <- dplyr::tibble(
+  project_id = 1:n,
+  cohort_id = project_id,
+  cohort = sample(c("A", "B"), n, replace = TRUE)
+)
+df_example <- df_example %>%
+  dplyr::mutate(stay_len = sample(1:50, n, replace = TRUE))
+
+gdp <- driveanalytics::gen_distribution_plots(
+  df_rdv = df_example,
+  col = "stay_len",
+  stratify_by = "cohort",
+  side_by_side = TRUE,
+  calc_length = FALSE,
+  calc_diff = FALSE,
+  xlab = "Length of stay (days)"
+)
+
+grid::grid.draw(gdp$plot)
+rownames(gdp$tbl_n) <- NULL
+knitr::kable(gdp$tbl_n)
+```
+
+```{r test_res, echo=FALSE, results='asis'}
+cat(gdp$test_result)
+```

@@ -1,0 +1,87 @@
+---
+title: "Hierarchical data plots Module"
+output: html_fragment
+---
+
+# Hierarchical Data Plots
+![](https://img.shields.io/badge/driveanalytics_method_family-gen_hierarchical_data_plots-purple.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-experimental-orange.svg) -->
+![](https://img.shields.io/badge/lifecycle-stable-green.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-deprecated-red.svg) -->
+
+```{r, setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(magrittr)
+library(driveanalytics)
+#library(reticulate)
+
+# Initial setup plotly::save_image()
+# install.packages('reticulate')
+# reticulate::install_miniconda()
+# reticulate::conda_install('r-reticulate', 'python-kaleido')
+# reticulate::conda_install('r-reticulate', 'plotly', channel = 'plotly')
+reticulate::use_miniconda('r-reticulate')
+
+knitr::opts_knit$set(echo = FALSE)
+reticulate::py_run_string("import sys")
+
+# Get the render format
+render_format <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+if (render_format == "") render_format <- "html"
+```
+
+## Overview
+
+This module visualises hierarchical data using treemapping and nested rectangles (tiles).
+
+The objective is to give an overview of the structure of hierarchical data i.e. show the composition within a group with smaller rectangles representing subgroups as well as compare compositions between cohorts.
+
+## Method
+
+This module generates a treemap for each cohort.
+
+The area of a rectangle (tile) is proportional to a variable and colour represents categories.
+
+## Considerations and Limitations
+
+* If the number of categories i.e. number of rectangles is large, the treemap may not be the most effective visualisation.
+
+* Currently, this module should not be applied to multiple membership data (e.g. non-nested classifications of drugs).
+
+## Example
+
+* Similar composition of Category 1, 2, and 3 events in the 2 groups A and B; 29.8% vs 34.9%, 52.6% vs 46.5%, and 17.5% vs 18.6%.
+* Event V was the most common event in group A (11%) and in Category 2 within A (20% of Category 2) whereas it was one of the least common events in group B with only 2%.
+
+```{r, example, echo = FALSE, warning = FALSE, out.width = '100%', results = 'asis'}
+
+# Create a random sample of patients in two cohorts and assign random events
+set.seed(123)
+n <- 100
+df_pde <- dplyr::tibble(
+  project_id = 1:n,
+  cohort_id = project_id,
+  cohort = sample(c("A","B"), n, replace = TRUE),
+)
+df_groupings <- tibble::tibble(
+  event = paste0("Event ", LETTERS),
+  group = c(rep("Category 1", 10), rep("Category 2", 12), rep("Category 3", 4))
+)
+df_events <- df_pde %>%
+  dplyr::mutate(event = sample(paste0("Event ", LETTERS), n, replace = TRUE)) %>%
+  dplyr::left_join(df_groupings, by = "event")
+
+ghdp_result <- driveanalytics::gen_hierarchical_data_plots(
+  df_rdv = df_events,
+  group_col = c("group", "event"),
+  size_col = "project_id",
+  stratify_by = "cohort"
+)
+
+if (!is.null(ghdp_result$plt)) {
+  plotly::save_image(ghdp_result$plt, "treemap_example.png", scale = 2)
+  knitr::include_graphics("treemap_example.png")
+} else {
+  cat("No treemaps found")
+}
+
+```

@@ -1,0 +1,60 @@
+---
+title: "Cohort Characteristics Module"
+output: html_fragment
+---
+
+# Cohort Characteristics
+![](https://img.shields.io/badge/driveanalytics_method_family-pde_cohort_characteristics-purple.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-experimental-orange.svg) -->
+![](https://img.shields.io/badge/lifecycle-stable-green.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-deprecated-red.svg) -->
+
+```{r, setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(magrittr)
+library(driveanalytics)
+
+knitr::opts_knit$set(echo = FALSE)
+
+# Get the render format
+render_format <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+if (render_format == "") render_format <- "html"
+```
+
+## Overview
+
+This module produces simple demographic characteristics tables showing numbers, sex, ethnicity and age at cohort entry, per cohort.
+
+## Considerations and Limitations
+* The difference between periods and patients is for the case where an individual patient occurs multiple times in a given cohort. This happens if, for example, the cohort has been defined as periods of time in PICU and a patient has been re-admitted.
+* Note that the ethnicity are aggregated to the categories in the [NHS data dictionary](https://www.datadictionary.nhs.uk/data_elements/ethnic_category.html)
+* If you are seeing 0 years for age at entry, then it is because your cohort entry is defined at birth
+
+## Example
+The following demographic characteristics table is based on two randomly generated cohorts.
+
+For cohort A, it can be seen that:
+
+1. There are 517 periods of data across 405 patients
+1. 48.36 % are female, the rest are male
+1. The mixed ethnicity category is the most common at 24.37 %
+1. The median age at cohort entry is 7.17 years
+
+```{r, example, echo=FALSE, dpi=200, out.width="100%", fig.dim = c(8, 3)}
+# Create a random sample of patients in two cohorts and assign random events
+set.seed(123)
+n <- 1000
+df_pde <- tibble::tibble(
+  project_id = sample(1:n, n, replace = TRUE),
+  cohort_id = project_id,
+  cohort = sample(c("A","B"), n, replace = TRUE),
+  sex_name = sample(c("Male","Female"), n, replace = TRUE),
+  birth_date = lubridate::as_date(sample(as.Date("2000-1-1"):as.Date("2010-1-1"), n, replace = TRUE)),
+  ethnicity_nat_code = sample(c(LETTERS[1:8], LETTERS[10:14], "P", "R", "S", "Z"), n, replace = TRUE),
+  cohort_entry_date = lubridate::as_date(sample(as.Date("2010-1-1"):as.Date("2015-1-1"), n, replace = TRUE)),
+  cohort_exit_date = lubridate::as_date(sample(as.Date("2015-1-1"):as.Date("2020-1-1"), n, replace = TRUE)),
+)
+
+# Perform frequency analysis and get results
+coh_char <- driveanalytics::pde_cohort_characteristics(df_pde)
+tabulate(coh_char, render_format)
+```

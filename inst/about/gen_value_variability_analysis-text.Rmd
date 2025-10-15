@@ -1,0 +1,68 @@
+---
+title: "Analysis of variability for value-based data"
+output: html_fragment
+---
+
+# Value Variability Analysis
+![](https://img.shields.io/badge/driveanalytics_method_family-gen_value_variability_analysis-purple.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-experimental-orange.svg) -->
+![](https://img.shields.io/badge/lifecycle-stable-green.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-deprecated-red.svg) -->
+
+```{r, setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(magrittr)
+library(driveanalytics)
+
+knitr::opts_knit$set(echo = FALSE)
+
+# Get the render format
+render_format <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+if (render_format == "") render_format <- "html"
+```
+
+## Overview
+This analytics module computes some statistical parameters to compare how value-based data vary within patients. For example, the module can be use to compute how variable patients` serum creatinine level are for a given period.
+
+## Method
+The method computes four statistical values for the values provided per patient per cohort. These methods are the number of values recorded per patient, the interquartile values per patient, the standard deviation of the values per patient and the full range of values per patient.
+
+## Example
+
+The following variability analysis is generated from 10,000 random test values across 100 patients, in two cohorts.
+
+This example shows the following information:
+
+1. Patients in cohort A have a median of 50 measured values each
+1. Patients in cohort B have a median of 55 measured values each
+1. Patients in cohort A have a standard deviation of approximately 9 for their measured values
+1. Patients in cohort B have a standard deviation of approximately 11 for their measured values
+1. Patients in cohort A have a larger standard deviation, interquartile range and range than patients in cohort B.
+
+
+
+```{r, example, echo=FALSE, dpi=200, out.width="100%", fig.dim = c(8, 8)}
+
+# Create a random sample of patients in two cohorts and assign random events
+set.seed(123)
+n <- 100
+nev <- n * 100
+df_rdv <- tibble::tibble(
+  cohort = sample(c("A","B"), nev, replace = TRUE),
+  project_id = dplyr::if_else(
+    cohort == "A",
+    sample(1:n, nev, replace = TRUE),
+    sample(1:(n/1.1), nev, replace = TRUE)
+  ),
+  cohort_id = project_id,
+  value = dplyr::if_else(
+    cohort == "A",
+     rnorm(nev, sd = 11),
+     rnorm(nev, sd = 9)
+  ),
+  taken_datetime = as.Date("2020-1-1")
+)
+
+mod_output <- driveanalytics::gen_value_variability_analysis(df_rdv, "value", "taken_datetime")
+grid::grid.draw(mod_output)
+
+```

@@ -1,0 +1,78 @@
+---
+title: "Correlation Analysis Module"
+output: html_fragment
+---
+
+# Correlation Analysis
+![](https://img.shields.io/badge/driveanalytics_method_family-gen_correlation_analysis-purple.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-experimental-orange.svg) -->
+![](https://img.shields.io/badge/lifecycle-stable-green.svg)
+<!-- ![](https://img.shields.io/badge/lifecycle-deprecated-red.svg) -->
+
+```{r, setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(magrittr)
+library(driveanalytics)
+
+knitr::opts_knit$set(echo = FALSE)
+
+# Get the render format
+render_format <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+if (render_format == "") render_format <- "html"
+```
+
+
+## Background
+This analysis computes the relative risk and odds ratios for events between cohorts.
+It can be used to identify which events are more likely to occur in a specific cohort, relative to another.
+The methods produces an ordered plot and tabulated data with the relative risk/odds ratio values and 95% confidence intervals for a given cohort relative to the selected 'relative' cohort.
+
+## Method
+The relative risk values for any event within the cohort is calculated using the BMJ method [1].
+In the case than an event does not occur in a cohort, 0.5 events are added to all cohorts.
+
+## Considerations and Limitations
+* Risk ratios are raw risks of event occurrence. No confounding factors are identified or considered.
+* The method does not account for multiple comparisons.
+
+## Example
+The following plot and table show the relative risk for a weighted-random set of events in 100 subjects.
+
+This example shows the following information:
+
+1. The relative risk for events A and B are significantly higher in cohort B than in cohort A (i.e., the relative risk and 95% confidence interval values are above 100%).
+1. The majority of the events are not significantly more prevelent in either cohort.
+1. The relative risk for events C and G are significantly lower in cohort B than in cohort A.
+
+```{r, example, echo=FALSE, dpi=200, out.width="100%", fig.dim = c(8, 3)}
+
+# Create a random sample of patients in two cohorts and assign random events
+set.seed(123)
+n <- 100
+nev <- n * 5
+df_pde <- tibble::tibble(
+  project_id = 1:n,
+  cohort_id = project_id,
+  cohort = sample(c("A","B"), n, replace = TRUE),
+)
+df_dia <- df_pde %>%
+  dplyr::sample_n(nev, replace = TRUE) %>%
+  dplyr::mutate(event = sample(paste0("Event ", LETTERS[1:10]), nev, replace = TRUE)) %>%
+  # Make event A more common in cohort B
+  dplyr::mutate(event = dplyr::if_else(cohort == "B" & runif(nev) > 0.7, "Event A", event)) %>%
+  # Make event B more common in cohort B
+  dplyr::mutate(event = dplyr::if_else(cohort == "B" & runif(nev) > 0.7, "Event B", event))
+
+# Perform analysis and get results
+gfa <- driveanalytics::gen_frequency_analysis(df_dia, df_pde, "event", "cohort")
+gca <- driveanalytics::gen_correlation_analysis(gfa, "A")
+gca_head <- head(gca, 26)
+plot(gca_head)
+tabulate(gca_head, render_format)
+
+```
+
+## References
+[1] BMJ description of method for calculating event risk
+
+
+[1]: https://bestpractice.bmj.com/info/toolkit/learn-ebm/how-to-calculate-risk/

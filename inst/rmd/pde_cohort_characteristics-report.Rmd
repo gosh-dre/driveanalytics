@@ -1,0 +1,23 @@
+---
+output: html_document
+params:
+  df_pde:
+    label: "Demographics RDV as a dataframe"
+    value: NA
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r run-analysis, echo=FALSE}
+df_tbl <- driveanalytics::pde_cohort_characteristics(params$df_pde)
+```
+
+# Summary of Demographic Characteristics by Cohort
+```{r results}
+render_output_type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+driveanalytics::tabulate(df_tbl, render_output_type)
+
+```
