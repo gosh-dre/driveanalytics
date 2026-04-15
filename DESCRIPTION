@@ -63,7 +63,17 @@ Imports:
     QuickJSR,
     prophet,
     mapview,
-    markdown
+    markdown,
+    tidytext,
+    reticulate,
+    tidyverse,
+    widyr,
+    tm,
+    SnowballC,
+    quanteda,
+    igraph,
+    textdata,
+    stm
 Suggests:
     testthat (>= 3.0.0),
     lintr (>= 2.0.1)
