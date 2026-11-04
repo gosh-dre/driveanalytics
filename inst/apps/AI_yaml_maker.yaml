@@ -1,0 +1,31 @@
+title: AI App maker
+description: App maker
+creator: will
+img: "www/images/Stack of books.png"
+dataset: dmv
+initialCohorts:
+  - label: Female
+    config:
+      - type: filter
+        rdv: pde
+        val: Female
+        inclusion: ever
+        column: sex_name
+        query_type: str_matches
+  - label: Male
+    config:
+      - type: filter
+        rdv: pde
+        val: Male
+        inclusion: ever
+        column: sex_name
+        query_type: str_matches
+offerCohortBuilder: false
+analysis:
+  - tab: AI app maker
+    methodList:
+      - fn: gen_yaml_maker
+        rpkg: driveanalytics
+        tab_lbl: "yaml maker"
+        params:
+          datasets_list: dmv
